@@ -1,0 +1,42 @@
+# IDE 和编辑器文件
+/.vscode/launch.json
+/.settings/
+/.eide/log/
+/.eide.usr.ctx.json
+
+# 构建输出文件
+/build/
+/bin/
+/obj/
+/out/
+
+# EIDE 模板文件
+*.ept
+*.eide-template
+
+# 编译输出文件
+*.elf
+*.hex
+*.bin
+*.axf
+*.a
+*.lib
+
+# 调试和映射文件
+*.map
+*.lst
+*.debug
+*.sym
+
+# 中间编译文件
+*.o
+*.d
+*.su
+
+# 备份文件
+*~
+*.bak
+
+# 操作系统生成的文件
+.DS_Store
+Thumbs.db
