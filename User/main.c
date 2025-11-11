@@ -14,15 +14,30 @@
 #include "EI.h"
 #include "Serial.h"
 #include <string.h>
-
+#include "PID.h"
 
 extern  uint16_t Time_Serial;
 
-float Target = 0,Actual = 0,Out = 0;
-float Kp = 0.5,Ki = 0.04,Kd = 0;
-float Error0 = 0,Error1 = 0,Error2 = 0;
-uint8_t Actual_mode = 0;
-uint8_t mode =0,Flag_change = 0;
+
+
+PID_TypeDef Inner = {
+	.Kp = 0.3,
+	.Ki = 0,
+	.Kd = 0,
+	.OutMax = 100,
+	.OutMin = -100,
+};
+
+PID_TypeDef Outer = {
+	.Kp = 0.3,
+	.Ki = 0,
+	.Kd = 0,
+	.OutMax = 20,
+	.OutMin = -20,
+};
+
+
+int16_t Speed,Location;
 
 int main ()
 {	
@@ -38,92 +53,7 @@ int main ()
 	while(1)
 	{	
 		
-		if ( Key_GetNum() == 1){
-			mode = (mode + 1) % 2;
-			Motor_SetSpeed(M1,0);
-			Motor_SetSpeed(M2,0);
-			Actual_mode = 0;
-			Target = 0;
-			Actual = 0;
-			Flag_change = 1;
-			
-		}
-		if(mode == 0){
-			if(Serial_RxFlag == 1){
-				Target = 0;
-				if(Serial_RxPacket[0] == '-'){
-					for(int i = 1;Serial_RxPacket[i] != '%';i++){
-						Target = Target * 10 + (Serial_RxPacket[i] - '0');
-					}
-					//if(Target >= 100){Target = 100;}
-					Target = -Target;
-				} else{  
-					for(int i = 0;Serial_RxPacket[i] != '%';i++){
-						Target = Target * 10 + (Serial_RxPacket[i] - '0');
-					}
-					//if(Target >= 100){Target = 100;}
-				}
-				
-				Serial_RxFlag = 0;
-				
-			}
-		} else if(mode == 1){
-			Target += (EI_GetTim3() / 3);
-			
-		}
 		
-		
-		switch(mode){
-			case 0:
-				OLED_Clear();
-				OLED_ShowString(0,0,"mission1",OLED_8X16);
-				OLED_Printf(0,16,OLED_8X16,"Target=%+05.0f",Target);
-				OLED_Printf(0,32,OLED_8X16,"Actual=%+05.0f",Actual);
-				OLED_Printf(0,48,OLED_8X16,"Out=%+05.0f",Out);
-				
-				break;
-			case 1:
-				OLED_Clear();
-				OLED_ShowString(0,0,"mission2",OLED_8X16);
-				OLED_Printf(0,16,OLED_8X16,"Position1=%+05.0f",Target);
-				OLED_Printf(0,32,OLED_8X16,"Position2=%+05.0f",Actual);
-				break;
-			
-		}
-		
-		
-		
-		
-		
-		if(Target == 0 && mode == 0){
-			if(Actual_mode == 1){
-				Actual_mode = 0;
-				Actual = 0;
-			}
-			Actual += (EI_GetTim3() / 3);//相当于单位为占空比
-		} else if(Target != 0 && mode == 0){
-			if(Actual_mode == 0){
-				Actual_mode = 1;
-				Actual = 0;
-			}
-			Actual = (EI_GetTim3() / 3);
-		} else if(mode == 1){
-			Actual += (EI_GetTim4() / 3);
-			
-		}
-		
-		OLED_Update();
-
-		
-		if(Time_Serial >= 10){
-			Time_Serial = 0 ;
-			if(Actual && mode == 0){
-				printf("%.2f\n",Actual);//???
-			}
-			if(mode == 1){
-				printf("%.2f,%.2f\n",Actual,Target);
-			}
-		}
 		
 	}
 	
@@ -131,50 +61,34 @@ int main ()
 
 void TIM2_IRQHandler(void)
 {
-	static uint16_t Count;
+	static uint16_t Count1,Count2;
 	if(TIM_GetITStatus(TIM2,TIM_IT_Update)==SET){
 		Serial_Tick();
-		
-		
-		
 		Key_Tick();
-		Count ++;
-		if(Count >= 20){
-			Count = 0;
+		Count1 ++;
+		if(Count1 >= 20){
+			Count1 = 0;
+			Speed = Encoder_Get();
+			Location += Speed;
 			
-			if(Flag_change == 1){
-				Motor_SetSpeed(M1,0);
-				Motor_SetSpeed(M2,0);
-				Actual_mode = 0;
-				Target = 0;
-				Actual = 0;
-				Flag_change = 0;
-			}
+			Inner.Actual = Speed;
 			
-			Error2 = Error1;
-			Error1 = Error0;
-			Error0 = Target - Actual;
-			if(Error0 >= -3 && Error0 <= 3 && Actual_mode == 0){
-				Out = 0;
-			} else {
-				Out += Kp * (Error0 - Error1) + Ki * Error0 + Kd * (Error0 - 2 * Error1 + Error2);
-			}
+			PID_Update(&Inner);
 			
-			
-			if(Out >= 100){Out = 100;}
-			if(Out <= -100){Out = -100;}
-			
-			if(mode == 0){
-				Motor_SetSpeed(M1,Out);
-			} 
-			if(mode == 1){
-				Motor_SetSpeed(M2,Out);
-			} 
+			Motor_SetSpeed(M1,Inner.Out);
 				
-		
-			
 		}
 		
+		Count2++;
+		if(Count2 >= 20){
+			Count2 = 0;
+			Outer.Actual = Location;
+			
+			PID_Update(&Outer);
+			
+			Motor_SetSpeed(M1,Outer.Out);
+			
+		}
 		TIM_ClearITPendingBit(TIM2,TIM_IT_Update);
 	}
 }
