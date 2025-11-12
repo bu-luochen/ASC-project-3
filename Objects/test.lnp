@@ -31,7 +31,6 @@
 ".\objects\delay.o"
 ".\objects\timer.o"
 ".\objects\led.o"
-".\objects\key.o"
 ".\objects\buzzer.o"
 ".\objects\lightsenser.o"
 ".\objects\countsenser.o"
@@ -43,6 +42,8 @@
 ".\objects\oled.o"
 ".\objects\oled_data.o"
 ".\objects\motor.o"
+".\objects\key.o"
+".\objects\menu.o"
 --library_type=microlib --strict --scatter ".\Objects\test.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
