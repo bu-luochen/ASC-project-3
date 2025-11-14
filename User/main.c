@@ -50,9 +50,9 @@ typedef enum {
 typedef struct {
     char name[20];
     ItemType type;
-    int16_t value;           
+    float value;           
     int16_t subIndex;    
-    int16_t (*function)(void);  
+    void (*function)(void);  
 } MenuItem;
 
 typedef struct {
@@ -61,7 +61,7 @@ typedef struct {
     int16_t count;
     int16_t parIndex;     
 } Menu;
-extern Menu menu[5];
+extern Menu menu[4];
 extern int16_t menuIndex;
 extern int16_t itemIndex;
 extern int16_t mode;
@@ -85,66 +85,52 @@ int main ()
 	while(1)
 	{	
 		if(Key_Check(KEY_4,KEY_SINGLE)){
-			if(mode == 0){
+			if(mode != 1){
 				up();
-				} else if(mode == 1 && menuIndex == 1){
-					if(itemIndex == 0){
-						
-					}else if(itemIndex == 1){
-						
-					}
-				} else if(mode == 1 && menuIndex == 2)
+				} else if(mode == 1 && menuIndex == 1)
 				{
-					menu[2].item[itemIndex].value++;
+					menu[1].item[itemIndex].value += 0.01;
 				}
-			}
+		}
+		
 		if(Key_Check(KEY_2,KEY_SINGLE)){
-			if(mode == 0){
+			if(mode != 1){
 				down();
-			} else if(mode == 1 && menuIndex == 1){
-				if(itemIndex == 0){
-					
-				}else if(itemIndex == 1){
-					
-				}
-				
-			} else if(mode == 1 && menuIndex == 2)
+			} else if(mode == 1 && menuIndex == 1)
 			{
-				if(menu[2].item[itemIndex].value - 1 >= 0){
-					menu[2].item[itemIndex].value--;
-				}
+				menu[1].item[itemIndex].value -= 0.01;
 			}
 		}
+		
 		if(Key_Check(KEY_14,KEY_SINGLE)){
 			back();
 			OLED_Clear();
 		}
 		if(Key_Check(KEY_0,KEY_SINGLE)){
 			OLED_Clear();
-//			if (mode == 1 && menu[menuIndex].item[itemIndex].function != NULL){
-//				menu[menuIndex].item[itemIndex].function();
-//			}
+			if (menu[menuIndex].item[itemIndex].function != NULL){
+				menu[menuIndex].item[itemIndex].function();
+			}
 			confirm();
 			
 		}
 		if(Key_Check(KEY_4,KEY_REPEAT)){
-			if(mode == 1 && menuIndex == 2)
+			if(mode == 1 && menuIndex == 1)
 			{
-				menu[2].item[itemIndex].value++;
+				menu[1].item[itemIndex].value += 0.05;
 			}
 		}
 		if(Key_Check(KEY_2,KEY_REPEAT)){
-			if(mode == 1 && menuIndex == 2)
+			if(mode == 1 && menuIndex == 1)
 			{
-				if(menu[2].item[itemIndex].value - 1 >= 0){
-					menu[2].item[itemIndex].value--;
-				}
+				menu[1].item[itemIndex].value -= 0.05;	
 			}
 		}
-		
-		if(mode == 1 && menuIndex == 1 ){
-				OLED_ShowString(1,14,"E",OLED_8X16); 
+		OLED_Clear();
+		if(mode == 1){
+			OLED_ShowString(120,0,"E",OLED_8X16);
 		}
+		
 		OLED_ShowMenu();
 		
 		
@@ -156,33 +142,35 @@ void TIM2_IRQHandler(void)
 {
 	static uint16_t Count1,Count2;
 	if(TIM_GetITStatus(TIM2,TIM_IT_Update)==SET){
-		Serial_Tick();
+
 		Key_Tick();
-		Count1 ++;
-		if(Count1 >= 20){
-			Count1 = 0;
-			Speed = Encoder_Get();
-			Location += Speed;
-			
-			Inner.Actual = Speed;
-			
-			PID_Update(&Inner);
-			
-			Motor_SetSpeed(M1,Inner.Out);
-				
-		}
-		
-		Count2++;
-		if(Count2 >= 20){
-			Count2 = 0;
-			Outer.Actual = Location;
-			
-			PID_Update(&Outer);
-			
-			Motor_SetSpeed(M1,Outer.Out);
-			
-		}
+//		Serial_Tick();
+//		Count1 ++;
+//		if(Count1 >= 20){
+//			Count1 = 0;
+//			Speed = Encoder_Get();
+//			Location += Speed;
+//			
+//			Inner.Actual = Speed;
+//			
+//			PID_Update(&Inner);
+//			
+//			Motor_SetSpeed(M1,Inner.Out);
+//				
+//		}
+//		
+//		Count2++;
+//		if(Count2 >= 20){
+//			Count2 = 0;
+//			Outer.Actual = Location;
+//			
+//			PID_Update(&Outer);
+//			
+//			Motor_SetSpeed(M1,Outer.Out);
+//			
+//		}
 		TIM_ClearITPendingBit(TIM2,TIM_IT_Update);
 	}
+	
 }
 
