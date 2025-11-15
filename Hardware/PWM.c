@@ -9,7 +9,7 @@ void PWM_Init(void)
 	
 	GPIO_InitTypeDef GPIO_InitStructure;
 	GPIO_InitStructure.GPIO_Mode=GPIO_Mode_AF_PP;//引脚的控制权限改为定时器（复用推挽）
-	GPIO_InitStructure.GPIO_Pin=GPIO_Pin_2|GPIO_Pin_3;
+	GPIO_InitStructure.GPIO_Pin=GPIO_Pin_1|GPIO_Pin_3;
 	GPIO_InitStructure.GPIO_Speed=GPIO_Speed_50MHz;
 	GPIO_Init(GPIOA,&GPIO_InitStructure);
 	
@@ -29,8 +29,8 @@ void PWM_Init(void)
 	TIM_OCInitStructure.TIM_OCMode=TIM_OCMode_PWM1;
 	TIM_OCInitStructure.TIM_OCPolarity=TIM_OCPolarity_High;
 	TIM_OCInitStructure.TIM_OutputState=ENABLE;
-	TIM_OCInitStructure.TIM_Pulse=10;//CCR
-	TIM_OC3Init(TIM2,&TIM_OCInitStructure);
+	TIM_OCInitStructure.TIM_Pulse=50;//CCR
+	TIM_OC2Init(TIM2,&TIM_OCInitStructure);
 	TIM_OC4Init(TIM2,&TIM_OCInitStructure);
 	//输出比较单元
 	TIM_Cmd(TIM2,ENABLE);
@@ -42,7 +42,7 @@ void PWM_SetCompare(uint8_t Mx,uint16_t Compare)
 {
 	if(Mx == 1)
 	{
-		TIM_SetCompare3(TIM2,Compare);
+		TIM_SetCompare2(TIM2,Compare);
 	}
 	if(Mx == 2)
 	{

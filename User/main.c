@@ -73,13 +73,15 @@ extern int16_t mode;
 int main ()
 {	
 	OLED_Init();
-	LED_Init();
+	
 	Timer_Init();
 	Key_Init();
 	Serial_Init();
 	EI_Init();
 	Motor_Init();
 	Menu_Init();
+	
+	
 	
 	
 	while(1)
