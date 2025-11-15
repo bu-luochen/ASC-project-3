@@ -21,20 +21,21 @@ extern  uint16_t Time_Serial;
 
 
 
-PID_TypeDef Inner = {
+PID_TypeDef left = {
 	.Kp = 0.3,
 	.Ki = 0,
 	.Kd = 0,
 	.OutMax = 100,
 	.OutMin = -100,
+	
 };
 
-PID_TypeDef Outer = {
+PID_TypeDef right = {
 	.Kp = 0.3,
 	.Ki = 0,
 	.Kd = 0,
-	.OutMax = 20,
-	.OutMin = -20,
+	.OutMax = 100,
+	.OutMin = -100,
 };
 
 
@@ -147,30 +148,29 @@ void TIM2_IRQHandler(void)
 
 		Key_Tick();
 //		Serial_Tick();
-//		Count1 ++;
-//		if(Count1 >= 20){
-//			Count1 = 0;
-//			Speed = Encoder_Get();
-//			Location += Speed;
-//			
-//			Inner.Actual = Speed;
-//			
-//			PID_Update(&Inner);
-//			
-//			Motor_SetSpeed(M1,Inner.Out);
-//				
-//		}
-//		
-//		Count2++;
-//		if(Count2 >= 20){
-//			Count2 = 0;
-//			Outer.Actual = Location;
-//			
-//			PID_Update(&Outer);
-//			
-//			Motor_SetSpeed(M1,Outer.Out);
-//			
-//		}
+		Count1 ++;
+		if(Count1 >= 20){
+			Count1 = 0;
+			Speed = Encoder_Get();
+			
+			left.Actual = Speed;
+			
+			PID_Update(&left);
+			
+			Motor_SetSpeed(M1,left.Out);
+				
+		}
+		
+		Count2++;
+		if(Count2 >= 20){
+			Count2 = 0;
+			right.Actual = Location;
+			
+			PID_Update(&right);
+			
+			Motor_SetSpeed(M2,right.Out);
+			
+		}
 		TIM_ClearITPendingBit(TIM2,TIM_IT_Update);
 	}
 	
