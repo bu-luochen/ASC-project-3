@@ -149,16 +149,17 @@ void Menu_Order(int16_t menuIndex ,int16_t itemIndex,int16_t value)
 {
 	menu[menuIndex].item[itemIndex].value+=value;
 }
+uint8_t start_flag = 0;
 
 void All_Start(void)
 {
-	mode = 2;
+	start_flag = 1;
 }
 
 
 
 void All_Stop(void)
 {
-	mode = 0;
+	start_flag = 0;
 }
 

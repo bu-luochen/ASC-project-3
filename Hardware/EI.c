@@ -5,6 +5,7 @@ void EI_Init(void)
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3,ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4,ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA,ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB,ENABLE);
 	
 	
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -30,9 +31,9 @@ void EI_Init(void)
 	TIM_ICStructInit(&TIM_ICInitStructure);
 	TIM_ICInitStructure.TIM_Channel = TIM_Channel_1;//不能用|
 	TIM_ICInitStructure.TIM_ICFilter = 0xF;
-	
 	TIM_ICInit(TIM3,&TIM_ICInitStructure);
 	TIM_ICInit(TIM4,&TIM_ICInitStructure);
+
 	TIM_ICInitStructure.TIM_Channel = TIM_Channel_2;
 	TIM_ICInitStructure.TIM_ICFilter = 0xF;
 	TIM_ICInit(TIM3,&TIM_ICInitStructure);

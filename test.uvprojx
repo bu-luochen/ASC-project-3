@@ -850,6 +850,16 @@
               <FileType>5</FileType>
               <FilePath>.\Hardware\Menu.h</FilePath>
             </File>
+            <File>
+              <FileName>Infrared.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\Infrared.c</FilePath>
+            </File>
+            <File>
+              <FileName>Infrared.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\Infrared.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
