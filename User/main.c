@@ -80,6 +80,7 @@ int main ()
 	EI_Init();
 	Motor_Init();
 	Menu_Init();
+	Infrared_Init();
 	
 	menu[1].item[0].value = left.Kp;
 	menu[1].item[1].value = left.Ki;
