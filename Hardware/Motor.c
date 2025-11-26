@@ -15,12 +15,12 @@ void Motor_SetSpeed(uint8_t Mx,int16_t Speed)
 {
 	if(Mx == 1){
 		if(Speed >= 0){
-			GPIO_SetBits(GPIOB,GPIO_Pin_12);
-			GPIO_ResetBits(GPIOB,GPIO_Pin_13);
-			PWM_SetCompare(M1,Speed);
-		} else {
 			GPIO_SetBits(GPIOB,GPIO_Pin_13);
 			GPIO_ResetBits(GPIOB,GPIO_Pin_12);
+			PWM_SetCompare(M1,Speed);
+		} else {
+			GPIO_SetBits(GPIOB,GPIO_Pin_12);
+			GPIO_ResetBits(GPIOB,GPIO_Pin_13);
 			PWM_SetCompare(M1,-Speed);
 		}
 	}
@@ -36,4 +36,11 @@ void Motor_SetSpeed(uint8_t Mx,int16_t Speed)
 		}
 	}
 }
+
+void Motor_Forward(int16_t Speed)
+{
+	
+	
+}
+
 

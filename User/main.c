@@ -30,8 +30,8 @@ PID_TypeDef left = {
 	.error1 = 0,
 	.error2 = 0,
 	
-	.Kp = 0.03,
-	.Ki = 0.23,
+	.Kp = 0.42,
+	.Ki = 0.03,
 	.Kd = 0,
 	
 	.OutMax = 100,
@@ -46,8 +46,8 @@ PID_TypeDef right = {
 	.error1 = 0,
 	.error2 = 0,
 	
-	.Kp = 0.03,
-	.Ki = 0.23,
+	.Kp = 0.42,
+	.Ki = 0.03,
 	.Kd = 0,
 	
 	.OutMax = 100,
@@ -57,6 +57,7 @@ PID_TypeDef right = {
 };
 
 uint8_t Direct[6] = {0};
+uint8_t Last[6] = {0};
 int16_t Speed,Location;
 
 
@@ -86,30 +87,34 @@ int main ()
 	menu[1].item[1].value = left.Ki;
 	menu[1].item[2].value = left.Kd;
 	
+	
+	
+	
+	
 	while(1)
 	{	
 		
-		if(Serial_RxFlag == 1){
-				left.Target = 0;
-				right.Target = 0;
-				if(Serial_RxPacket[0] == '-'){
-					for(int i = 1;Serial_RxPacket[i] != '%';i++){
-						left.Target = left.Target * 10 + (Serial_RxPacket[i] - '0');
-					}
-					if(left.Target >= 100){left.Target = 100;}
-					left.Target = -left.Target;
-					right.Target = left.Target;
-				} else{  
-					for(int i = 0;Serial_RxPacket[i] != '%';i++){
-						left.Target = left.Target * 10 + (Serial_RxPacket[i] - '0');
-					}
-					if(left.Target >= 100){left.Target = 100;}
-					right.Target = left.Target;
-				}
-				
-			Serial_RxFlag = 0;
-				
-		}
+//		if(Serial_RxFlag == 1){
+//				left.Target = 0;
+//				right.Target = 0;
+//				if(Serial_RxPacket[0] == '-'){
+//					for(int i = 1;Serial_RxPacket[i] != '%';i++){
+//						left.Target = left.Target * 10 + (Serial_RxPacket[i] - '0');
+//					}
+//					if(left.Target >= 100){left.Target = 100;}
+//					left.Target = -left.Target;
+//					right.Target = left.Target;
+//				} else{  
+//					for(int i = 0;Serial_RxPacket[i] != '%';i++){
+//						left.Target = left.Target * 10 + (Serial_RxPacket[i] - '0');
+//					}
+//					if(left.Target >= 100){left.Target = 100;}
+//					right.Target = left.Target;
+//				}
+//				
+//			Serial_RxFlag = 0;
+//				
+//		}
 		
 		
 		
@@ -164,29 +169,34 @@ int main ()
 			OLED_ShowString(120,0,"E",OLED_8X16);
 		}
 		
-		if(Time_Infrared >= 20){
+		if(Time_Infrared >= 10){
 			Time_Infrared = 0;
-			Infrared_GetDir(Direct);
+			Infrared_GetDir(Direct,Last);
 			
-			OLED_ShowNum(64,16,Direct[1],1,OLED_8X16);
-			OLED_ShowNum(72,16,Direct[2],1,OLED_8X16);
-			OLED_ShowNum(80,16,Direct[3],1,OLED_8X16);
-			OLED_ShowNum(88,16,Direct[4],1,OLED_8X16);
-			OLED_ShowNum(96,16,Direct[5],1,OLED_8X16);
+			OLED_ShowNum(80,0,Direct[1],1,OLED_8X16);
+			OLED_ShowNum(88,0,Direct[2],1,OLED_8X16);
+			OLED_ShowNum(96,0,Direct[3],1,OLED_8X16);
+			OLED_ShowNum(104,0,Direct[4],1,OLED_8X16);
+			OLED_ShowNum(112,0,Direct[5],1,OLED_8X16);
+			
+			Direct_Adjust(Direct,Last,&left.Target,&right.Target);
+			
+			
 		}
-		
 		
 		OLED_ShowMenu();
 		
+		OLED_ShowNum(64,32,left.Target,3,OLED_8X16);
+		OLED_ShowNum(64,48,right.Target,3,OLED_8X16);
+		
 		OLED_Update();
 		
-//		OLED_ShowNum(64,16,left.Target,3,OLED_8X16);
-//		OLED_ShowNum(64,32,right.Target,3,OLED_8X16);
 		
-		if(Time_Serial >= 10){
+		
+		if(Time_Serial >= 20){
 			Time_Serial = 0 ;
 			if(start_flag == 1){
-				printf("%.2f,%.2f\n",left.Actual,left.Target);
+				printf("%.2f,%.2f\n",right.Actual,right.Target);
 			}
 		}
 		
@@ -212,32 +222,34 @@ void TIM2_IRQHandler(void)
 
 		Key_Tick();
 		Serial_Tick();
-		Infrared_Tick();
+		
 		if(start_flag == 1){
 			Count1 ++;
-			if(Count1 >= 20){
+			if(Count1 >= 10){
 				Count1 = 0;
-				Speed = EI_GetTim3() * 125.0 / 142.0;
+				Speed = EI_GetTim4() * (200.0) / (142.0);
 				
 				left.Actual = Speed;
 				
 				PID_Update(&left);
 				
-				Motor_SetSpeed(M1,left.Out);
+				Motor_SetSpeed(M2,left.Out);
 					
 			}
 			
 			Count2++;
-			if(Count2 >= 20){
+			if(Count2 >= 10){
 				Count2 = 0;
-				Speed = EI_GetTim4() * 100.0 / 142.0;
+				Speed = EI_GetTim3() * (200.0) / (142.0);
 				right.Actual = Speed;
 				
 				PID_Update(&right);
 				
-				Motor_SetSpeed(M2,right.Out);
+				Motor_SetSpeed(M1,right.Out);
 				
 			}
+			
+			Infrared_Tick();
 			
 		} else {
 			Motor_SetSpeed(M1,0);
