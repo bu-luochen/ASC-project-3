@@ -8,8 +8,8 @@
 #define X5			GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_5)
 
 void Infrared_Init(void);
-void Infrared_GetDir(uint8_t Direct[],uint8_t Last[]);
+void Infrared_GetDir(uint8_t Direct[]);
 void Infrared_Tick(void);
-void Direct_Adjust(uint8_t Direct[],uint8_t Last[],float *left,float *right);
+int16_t Direct_GetError(uint8_t Direct[]);
 #endif
 

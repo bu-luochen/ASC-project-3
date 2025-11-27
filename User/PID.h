@@ -20,8 +20,8 @@ typedef struct {
 	
 } PID_TypeDef;
 
-void PID_Update(PID_TypeDef *p);
-
+void PID_Update_Add(PID_TypeDef *p);
+void PID_Update_Pos(PID_TypeDef *p);
 
 #endif
 

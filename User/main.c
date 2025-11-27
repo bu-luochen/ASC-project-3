@@ -31,7 +31,7 @@ PID_TypeDef left = {
 	.error2 = 0,
 	
 	.Kp = 0.42,
-	.Ki = 0.03,
+	.Ki = 0.045,
 	.Kd = 0,
 	
 	.OutMax = 100,
@@ -47,7 +47,7 @@ PID_TypeDef right = {
 	.error2 = 0,
 	
 	.Kp = 0.42,
-	.Ki = 0.03,
+	.Ki = 0.045,
 	.Kd = 0,
 	
 	.OutMax = 100,
@@ -55,10 +55,26 @@ PID_TypeDef right = {
 	
 	.Out = 0,
 };
-
+PID_TypeDef direction = {
+	
+	.error0 = 0,
+	.error1 = 0,
+	.error2 = 0,
+	
+	.Kp = 1,
+	.Ki = 0.3,
+	.Kd = 0,
+	
+	.OutMax = 100,
+	.OutMin = -100,
+	
+	.Target = 0,
+	.Out = 0,
+	
+};
 uint8_t Direct[6] = {0};
-uint8_t Last[6] = {0};
-int16_t Speed,Location;
+
+float BaseSpeed = 50;
 
 
 
@@ -83,9 +99,9 @@ int main ()
 	Menu_Init();
 	Infrared_Init();
 	
-	menu[1].item[0].value = left.Kp;
-	menu[1].item[1].value = left.Ki;
-	menu[1].item[2].value = left.Kd;
+	menu[1].item[0].value = direction.Kp;
+	menu[1].item[1].value = direction.Ki;
+	menu[1].item[2].value = direction.Kd;
 	
 	
 	
@@ -169,26 +185,13 @@ int main ()
 			OLED_ShowString(120,0,"E",OLED_8X16);
 		}
 		
-		if(Time_Infrared >= 10){
-			Time_Infrared = 0;
-			Infrared_GetDir(Direct,Last);
-			
-			OLED_ShowNum(80,0,Direct[1],1,OLED_8X16);
-			OLED_ShowNum(88,0,Direct[2],1,OLED_8X16);
-			OLED_ShowNum(96,0,Direct[3],1,OLED_8X16);
-			OLED_ShowNum(104,0,Direct[4],1,OLED_8X16);
-			OLED_ShowNum(112,0,Direct[5],1,OLED_8X16);
-			
-			Direct_Adjust(Direct,Last,&left.Target,&right.Target);
-			
-			
-		}
+		
 		
 		OLED_ShowMenu();
 		
 		OLED_ShowNum(64,32,left.Target,3,OLED_8X16);
 		OLED_ShowNum(64,48,right.Target,3,OLED_8X16);
-		
+		OLED_ShowSignedNum(56,16,direction.Out,3,OLED_8X16);
 		OLED_Update();
 		
 		
@@ -222,16 +225,52 @@ void TIM2_IRQHandler(void)
 
 		Key_Tick();
 		Serial_Tick();
+		Infrared_Tick();
+		
+		if(Time_Infrared >= 20){
+			Time_Infrared = 0;
+			Infrared_GetDir(Direct);
+			
+			direction.Actual = Direct_GetError(Direct);
+				
+			PID_Update_Add(&direction);
+			
+			if(Direct[3] == 1 && Direct[1] == Direct[5] && Direct[2] == Direct[4] ){
+				direction.Out = 0;
+			}
+			
+			float k = direction.Out * 0.01;
+			
+			left.Target = BaseSpeed * (1 + k);
+			right.Target =  BaseSpeed * (1 - k);
+			
+//			if( k >= 0){
+//				
+//				
+//			} else {
+//				
+//				
+//			}
+			
+			OLED_ShowNum(80,0,Direct[1],1,OLED_8X16);
+			OLED_ShowNum(88,0,Direct[2],1,OLED_8X16);
+			OLED_ShowNum(96,0,Direct[3],1,OLED_8X16);
+			OLED_ShowNum(104,0,Direct[4],1,OLED_8X16);
+			OLED_ShowNum(112,0,Direct[5],1,OLED_8X16);
+			
+		}
 		
 		if(start_flag == 1){
+			
+			
 			Count1 ++;
 			if(Count1 >= 10){
 				Count1 = 0;
-				Speed = EI_GetTim4() * (200.0) / (142.0);
 				
-				left.Actual = Speed;
 				
-				PID_Update(&left);
+				left.Actual = EI_GetTim4() * (250.0) / (142.0);
+				
+				PID_Update_Add(&left);
 				
 				Motor_SetSpeed(M2,left.Out);
 					
@@ -240,16 +279,16 @@ void TIM2_IRQHandler(void)
 			Count2++;
 			if(Count2 >= 10){
 				Count2 = 0;
-				Speed = EI_GetTim3() * (200.0) / (142.0);
-				right.Actual = Speed;
 				
-				PID_Update(&right);
+				right.Actual = EI_GetTim3() * (250.0) / (142.0);
+				
+				PID_Update_Add(&right);
 				
 				Motor_SetSpeed(M1,right.Out);
 				
 			}
 			
-			Infrared_Tick();
+			
 			
 		} else {
 			Motor_SetSpeed(M1,0);
@@ -267,16 +306,16 @@ void PID_Set(uint8_t Index)
 {
 	switch(Index){
 		case 0:
-				left.Kp = menu[1].item[itemIndex].value;
-				right.Kp = menu[1].item[itemIndex].value;
+				direction.Kp = menu[1].item[itemIndex].value;
+				
 			break;
 		case 1:
-				left.Ki = menu[1].item[itemIndex].value;
-				right.Ki = menu[1].item[itemIndex].value;
+				direction.Ki = menu[1].item[itemIndex].value;
+				
 			break;
 		case 2:
-				left.Kd = menu[1].item[itemIndex].value;
-				right.Kd = menu[1].item[itemIndex].value;
+				direction.Kd = menu[1].item[itemIndex].value;
+	
 			break;
 	}
 }
