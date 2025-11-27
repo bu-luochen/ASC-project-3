@@ -17,7 +17,7 @@
 #include "PID.h"
 #include "Menu.h"
 #include "Infrared.h"
-
+#include <math.h>
 extern uint16_t Time_Serial;
 extern uint16_t Time_Infrared; 
 
@@ -61,8 +61,8 @@ PID_TypeDef direction = {
 	.error1 = 0,
 	.error2 = 0,
 	
-	.Kp = 1,
-	.Ki = 0.3,
+	.Kp = 1.2,
+	.Ki = 0.23,
 	.Kd = 0,
 	
 	.OutMax = 100,
@@ -74,7 +74,7 @@ PID_TypeDef direction = {
 };
 uint8_t Direct[6] = {0};
 
-float BaseSpeed = 50;
+float BaseSpeed = 45;
 
 
 
@@ -186,11 +186,9 @@ int main ()
 		}
 		
 		
-		
 		OLED_ShowMenu();
 		
-		OLED_ShowNum(64,32,left.Target,3,OLED_8X16);
-		OLED_ShowNum(64,48,right.Target,3,OLED_8X16);
+		
 		OLED_ShowSignedNum(56,16,direction.Out,3,OLED_8X16);
 		OLED_Update();
 		
@@ -199,7 +197,7 @@ int main ()
 		if(Time_Serial >= 20){
 			Time_Serial = 0 ;
 			if(start_flag == 1){
-				printf("%.2f,%.2f\n",right.Actual,right.Target);
+				printf("%.2f,%.2f\n",left.Actual,left.Target);
 			}
 		}
 		
@@ -220,14 +218,14 @@ int main ()
 
 void TIM2_IRQHandler(void)
 {
-	static uint16_t Count1,Count2;
+	static uint16_t Count;
 	if(TIM_GetITStatus(TIM2,TIM_IT_Update)==SET){
 
 		Key_Tick();
 		Serial_Tick();
 		Infrared_Tick();
 		
-		if(Time_Infrared >= 20){
+		if(Time_Infrared >= 10){
 			Time_Infrared = 0;
 			Infrared_GetDir(Direct);
 			
@@ -237,20 +235,19 @@ void TIM2_IRQHandler(void)
 			
 			if(Direct[3] == 1 && Direct[1] == Direct[5] && Direct[2] == Direct[4] ){
 				direction.Out = 0;
+				
 			}
 			
-			float k = direction.Out * 0.01;
+			float k;
 			
-			left.Target = BaseSpeed * (1 + k);
-			right.Target =  BaseSpeed * (1 - k);
+			k=direction.Out * 0.065;
 			
-//			if( k >= 0){
-//				
-//				
-//			} else {
-//				
-//				
-//			}
+			
+//			left.Target = BaseSpeed * (1 + k);
+//			right.Target =  BaseSpeed * (1 - k);
+			Motor_SetSpeed(M1,BaseSpeed * (1 + k));
+			Motor_SetSpeed(M2,BaseSpeed * (1 - k));
+			
 			
 			OLED_ShowNum(80,0,Direct[1],1,OLED_8X16);
 			OLED_ShowNum(88,0,Direct[2],1,OLED_8X16);
@@ -262,33 +259,18 @@ void TIM2_IRQHandler(void)
 		
 		if(start_flag == 1){
 			
-			
-			Count1 ++;
-			if(Count1 >= 10){
-				Count1 = 0;
+//			Count ++;
+			if(Count >= 10){
+				Count = 0;
 				
+				left.Actual = EI_GetTim4();
 				
-				left.Actual = EI_GetTim4() * (250.0) / (142.0);
-				
+				right.Actual = EI_GetTim3();
 				PID_Update_Add(&left);
-				
-				Motor_SetSpeed(M2,left.Out);
-					
-			}
-			
-			Count2++;
-			if(Count2 >= 10){
-				Count2 = 0;
-				
-				right.Actual = EI_GetTim3() * (250.0) / (142.0);
-				
 				PID_Update_Add(&right);
-				
-				Motor_SetSpeed(M1,right.Out);
-				
+				Motor_SetSpeed(M2,left.Out);
+				Motor_SetSpeed(M1,right.Out);	
 			}
-			
-			
 			
 		} else {
 			Motor_SetSpeed(M1,0);
