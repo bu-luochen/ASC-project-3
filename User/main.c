@@ -61,8 +61,8 @@ PID_TypeDef direction = {
 	.error1 = 0,
 	.error2 = 0,
 	
-	.Kp = 1.2,
-	.Ki = 0.23,
+	.Kp = 1,
+	.Ki = 0.1,
 	.Kd = 0,
 	
 	.OutMax = 100,
@@ -74,7 +74,7 @@ PID_TypeDef direction = {
 };
 uint8_t Direct[6] = {0};
 
-float BaseSpeed = 45;
+float BaseSpeed = 70;
 
 
 
@@ -190,6 +190,7 @@ int main ()
 		
 		
 		OLED_ShowSignedNum(56,16,direction.Out,3,OLED_8X16);
+		
 		OLED_Update();
 		
 		
@@ -216,9 +217,10 @@ int main ()
 	
 }
 
+
 void TIM2_IRQHandler(void)
 {
-	static uint16_t Count;
+//	static uint16_t Count;
 	if(TIM_GetITStatus(TIM2,TIM_IT_Update)==SET){
 
 		Key_Tick();
@@ -231,22 +233,39 @@ void TIM2_IRQHandler(void)
 			
 			direction.Actual = Direct_GetError(Direct);
 				
-			PID_Update_Add(&direction);
-			
-			if(Direct[3] == 1 && Direct[1] == Direct[5] && Direct[2] == Direct[4] ){
-				direction.Out = 0;
+			if(Direct[1] == 0 && Direct[2] == 0 && Direct[3] == 0 && Direct[4] == 0 && Direct[5] == 0){
+				float turn_factor = 1;
+				if(start_flag == 1){
+					if(direction.Out < 0){turn_factor = -turn_factor;}
+						Motor_SetSpeed(M1,BaseSpeed * turn_factor);
+						Motor_SetSpeed(M2,BaseSpeed * (-turn_factor));
+				} else {
+					Motor_SetSpeed(M1,0);
+					Motor_SetSpeed(M2,0);
+				}
 				
+				
+			} else {
+				PID_Update_Add(&direction);
+				
+				if(Direct[3] == 1 && Direct[1] == Direct[5] && Direct[2] == Direct[4] ){
+					direction.Out = 0;
+				}
+				
+				float k;
+				
+				k = direction.Out * 0.043;
+				
+				if(start_flag == 1){
+					Motor_SetSpeed(M1,BaseSpeed * (1 + k));
+					Motor_SetSpeed(M2,BaseSpeed * (1 - k));
+				} else {
+					Motor_SetSpeed(M1,0);
+					Motor_SetSpeed(M2,0);
+				}
 			}
 			
-			float k;
 			
-			k=direction.Out * 0.065;
-			
-			
-//			left.Target = BaseSpeed * (1 + k);
-//			right.Target =  BaseSpeed * (1 - k);
-			Motor_SetSpeed(M1,BaseSpeed * (1 + k));
-			Motor_SetSpeed(M2,BaseSpeed * (1 - k));
 			
 			
 			OLED_ShowNum(80,0,Direct[1],1,OLED_8X16);
@@ -257,25 +276,25 @@ void TIM2_IRQHandler(void)
 			
 		}
 		
-		if(start_flag == 1){
-			
+//		if(start_flag == 1){
+//			
 //			Count ++;
-			if(Count >= 10){
-				Count = 0;
-				
-				left.Actual = EI_GetTim4();
-				
-				right.Actual = EI_GetTim3();
-				PID_Update_Add(&left);
-				PID_Update_Add(&right);
-				Motor_SetSpeed(M2,left.Out);
-				Motor_SetSpeed(M1,right.Out);	
-			}
-			
-		} else {
-			Motor_SetSpeed(M1,0);
-			Motor_SetSpeed(M2,0);
-		}
+//			if(Count >= 10){
+//				Count = 0;
+//				
+//				left.Actual = EI_GetTim4();
+//				
+//				right.Actual = EI_GetTim3();
+//				PID_Update_Add(&left);
+//				PID_Update_Add(&right);
+//				Motor_SetSpeed(M2,left.Out);
+//				Motor_SetSpeed(M1,right.Out);	
+//			}
+//			
+//		} else {
+//			Motor_SetSpeed(M1,0);
+//			Motor_SetSpeed(M2,0);
+//		}
 		
 		TIM_ClearITPendingBit(TIM2,TIM_IT_Update);
 	}

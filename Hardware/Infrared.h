@@ -10,6 +10,6 @@
 void Infrared_Init(void);
 void Infrared_GetDir(uint8_t Direct[]);
 void Infrared_Tick(void);
-int16_t Direct_GetError(uint8_t Direct[]);
+float Direct_GetError(uint8_t Direct[]);
 #endif
 

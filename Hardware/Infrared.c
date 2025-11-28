@@ -36,10 +36,10 @@ void Infrared_Tick(void)
 
 
 
-int16_t Direct_GetError(uint8_t Direct[])
+float Direct_GetError(uint8_t Direct[])
 {
-	int16_t Error;
-	Error = -6 * Direct[1] + -2 * Direct[2] + 0 * Direct[3] + 2 * Direct[4] + 6 * Direct[5];
+	float Error;
+	Error = -5 * Direct[1] + -2 * Direct[2] + 0 * Direct[3] + 2 * Direct[4] + 5 * Direct[5];
 	return Error;
 		
 	
