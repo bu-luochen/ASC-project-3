@@ -62,7 +62,7 @@ PID_TypeDef direction = {
 	.error2 = 0,
 	
 	.Kp = 1,
-	.Ki = 0.1,
+	.Ki = 0.0425,
 	.Kd = 0,
 	
 	.OutMax = 100,
@@ -74,7 +74,7 @@ PID_TypeDef direction = {
 };
 uint8_t Direct[6] = {0};
 
-float BaseSpeed = 70;
+float BaseSpeed = 78;
 
 
 
